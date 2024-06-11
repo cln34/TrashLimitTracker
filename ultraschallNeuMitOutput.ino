@@ -36,7 +36,7 @@ void loop() {
   // abstand berechnen
   distance = duration * 0.034 / 2;
 
-  if (distance < 100) {
+  if (distance < 10) {
     printedYellow = false;
     printedGreen = false;
     setColor(pixels.Color(255, 0, 0)); // Rot für kurze Distanz
@@ -44,7 +44,7 @@ void loop() {
       Serial.println("Rot");
       printedRed = true;
     }
-  } else if (distance >= 100 && distance < 200) {
+  } else if (distance >= 10 && distance < 20) {
     printedRed = false;
   printedGreen = false;
     setColor(pixels.Color(255, 255, 0)); // Gelb für mittlere Distanz
