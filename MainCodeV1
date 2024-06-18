@@ -83,10 +83,10 @@ void loop() {
   distance = duration * 0.034 / 2;
 
   // LEDs basierend auf dem abstand steuern
-  if (distance < 10) {
+  if (distance < 15) {
     setColor(pixels.Color(255, 0, 0)); // Rot für kurze Distanz
     
-  } else if (distance >= 10 && distance < 20) {
+  } else if (distance >= 15 && distance < 23) {
     setColor(pixels.Color(255, 255, 0)); // Gelb für mittlere Distanz
   } else{
     setColor(pixels.Color(0, 255, 0)); // Grün für lange Distanz
