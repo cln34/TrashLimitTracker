@@ -1,0 +1,111 @@
+
+
+#include "HX711.h"
+#include <Adafruit_NeoPixel.h>
+
+
+// HX711 Verdrahtung
+#define WAAGE_1_DOUT_PIN  D5 // DT Pin des Hx711
+#define WAAGE_1_SCK_PIN  D6  // SCK Pin des Hx711
+
+HX711 waage1;
+
+//long double messwert0;
+//long double messwert1;
+//long raw 10004656000000L;
+
+
+//Neopixel Verdrahtung
+#define PIN D8 // datenpin neopixel
+#define NUMPIXELS 8 // anzahl LEDs neopixel
+
+//Ultraschall
+const int trigPin = D1;
+const int echoPin = D2;
+long duration;
+int distance;
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+
+void setup() {
+  
+  Serial.begin(115200);
+  Serial.println("HX711 Test");
+  waage1.begin(WAAGE_1_DOUT_PIN, WAAGE_1_SCK_PIN);
+ 
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pixels.begin();
+  pixels.setBrightness(8);
+  
+  
+}
+
+void loop() {
+
+  
+  
+  if (waage1.is_ready()) {
+    //long double raw  = 10004656000000;
+    //long double messwert0 = ((waage1.get_units(10)) + 1000000000);
+    //long double messwert1 =((raw/messwert0 )*100000 )/D2 /111;
+    float messwert0 =((waage1.read() * -0.0001)+46.7);
+
+    float messwert1 = 0.1/messwert0*526.5;
+    
+    
+    
+    
+    
+    Serial.print("Messstelle 1 Wert: ");
+    Serial.println(messwert1, 5);
+    Serial.println();
+    Serial.println();
+  }
+  else {
+    Serial.println("HX711 Messstelle 1 nicht verbunden.");
+  }
+
+   // trigpin auf low setzen
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // trigpin auf high setzen für 10 mikrosekunden
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // echo pin lesen und die zeitdauer messen
+  duration = pulseIn(echoPin, HIGH);
+
+  // abstand berechnen
+  distance = duration * 0.034 / 2;
+
+  // LEDs basierend auf dem abstand steuern
+  if (distance < 10) {
+    setColor(pixels.Color(255, 0, 0)); // Rot für kurze Distanz
+    
+  } else if (distance >= 10 && distance < 20) {
+    setColor(pixels.Color(255, 255, 0)); // Gelb für mittlere Distanz
+  } else{
+    setColor(pixels.Color(0, 255, 0)); // Grün für lange Distanz
+  } /*
+    setColor(pixels.Color(0, 0, 255)); // Blau für Fehlerzustand
+  */
+ 
+  ;
+
+
+  delay(1000);
+
+}
+
+
+void setColor(uint32_t color) {
+  for(int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, color);
+    
+  }
+  pixels.show(); // Aktualisiert die LEDs mit der neuen Farbe
+}
