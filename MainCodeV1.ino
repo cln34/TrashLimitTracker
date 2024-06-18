@@ -29,7 +29,6 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 
 void setup() {
-  
   Serial.begin(115200);
   Serial.println("HX711 Test");
   waage1.begin(WAAGE_1_DOUT_PIN, WAAGE_1_SCK_PIN);
@@ -38,14 +37,9 @@ void setup() {
   pinMode(echoPin, INPUT);
   pixels.begin();
   pixels.setBrightness(8);
-  
-  
 }
 
 void loop() {
-
-  
-  
   if (waage1.is_ready()) {
     //long double raw  = 10004656000000;
     //long double messwert0 = ((waage1.get_units(10)) + 1000000000);
@@ -53,10 +47,6 @@ void loop() {
     float messwert0 =((waage1.read() * -0.0001)+46.7);
 
     messwertfinal = (((messwert0/0.1)-1)*44)+55;
-    
-    
-    
-    
     
     Serial.print("Messstelle 1 Wert: ");
     //Serial.println(messwert0, 5);
@@ -107,13 +97,8 @@ void loop() {
   //Fall 3: Lange Distanz & hohes Gewicht (gelb)
   else{
     setColor(pixels.Color(255, 255, 0)); 
-  }
-
-  ;
-
-
+  };
   delay(1000);
-
 }
 
 
