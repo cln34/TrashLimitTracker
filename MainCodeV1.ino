@@ -1,7 +1,7 @@
 #include "HX711.h"
 #include <Adafruit_NeoPixel.h>
 
-//Messwert für Nachricht
+//Messwerte für Nachricht wenn Mülleimer voll ist
 bool muelleimerVoll = false;
 int redStartTime = 0;
 bool isRed = false;
