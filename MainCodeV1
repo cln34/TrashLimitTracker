@@ -52,14 +52,15 @@ void loop() {
     //long double messwert1 =((raw/messwert0 )*100000 )/D2 /111;
     float messwert0 =((waage1.read() * -0.0001)+46.7);
 
-    float messwert1 = 0.1/messwert0*526.5;
+    float messwertfinal = (((messwert0/0.1)-1)*44)+55;
     
     
     
     
     
     Serial.print("Messstelle 1 Wert: ");
-    Serial.println(messwert1, 5);
+    //Serial.println(messwert0, 5);
+    Serial.println(messwertfinal, 5);
     Serial.println();
     Serial.println();
   }
