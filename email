@@ -1,0 +1,33 @@
+#include <ESP8266WiFi.h>
+#include <sendemail.h>
+const char* wlan_ssid = "WLAN-SSID";
+const char* wlan_pass = "WLAN-Passwort";
+const char* smtp_server = "smtp.gmail.com";
+const int   smtp_port = 465;
+const char* smtp_login = "trashlimittracker@gmail.com";
+const char* smtp_password = "TrashLimitTracker!1";
+const int   smtp_timeout = 5000;
+const bool  smtp_ssl = false;
+const char* mail_from = "trashlimittracker@gmail.com";
+const char* mail_to = "trashlimittracker@gmail.com";
+const char* mail_subject = "Betreff";
+const char* mail_text = "Text";
+void setup() {
+  Serial.begin(115200);
+  Serial.println("\r\n");
+  WiFi.begin(wlan_ssid, wlan_pass);
+  while (WiFi.status() != WL_CONNECTED) {
+     delay(500);
+     Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Verbunden mit ");
+  Serial.println(wlan_ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  SendEmail e(smtp_server, smtp_port, smtp_login, smtp_password, smtp_timeout, smtp_ssl);
+  e.send(mail_from, mail_to, mail_subject, mail_text);
+  delay(1500);
+  ESP.deepSleep(0);
+}
+void loop() {}
