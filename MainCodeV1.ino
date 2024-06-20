@@ -110,7 +110,7 @@ void loop() {
   // Abstand berechnen
   distance = duration * 0.034 / 2;
 
-  // LEDs basierend auf dem Abstand steuern
+  // LEDs basierend auf dem Abstand und Gewicht steuern
   uint32_t color;
   if (distance < 15) {
     color = pixels.Color(255, 0, 0); // Rot für kurze Distanz
