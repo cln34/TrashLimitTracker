@@ -1,16 +1,11 @@
-
-//#include <WiFi101.h>
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 #include <NTPClient.h>
 #include <ESP8266WebServer.h>
-
-
-
 #include "HX711.h"
 #include <Adafruit_NeoPixel.h>
 
-//Messwerte für Nachricht wenn Mülleimer voll ist
+// Messwerte für Nachricht wenn Mülleimer voll ist
 bool muelleimerVoll = false;
 int redStartTime = 0;
 bool isRed = false;
@@ -20,11 +15,13 @@ const char *password = "Ichstehedeutlichueberdir";
 
 const long utcOffsetInSeconds = 3600;
 
-
 WiFiUDP ntpUDP;
 WiFiClient wifiClient;
 ESP8266WebServer server(80);
-
+bool displayPage0 = true;
+bool displayPage1 = false;
+bool displayPage2 = false;
+bool displayPage3 = false;
 
 // HX711 Verdrahtung
 #define WAAGE_1_DOUT_PIN  D5 // DT Pin des Hx711
@@ -47,30 +44,26 @@ int distance;
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-
 void setup() {
   Serial.begin(115200);
   Serial.println("HX711 Test");
   waage1.begin(WAAGE_1_DOUT_PIN, WAAGE_1_SCK_PIN);
- 
+
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pixels.begin();
   pixels.setBrightness(8);
 
-WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Ich verbinde mich mit dem Internet...");
   }
 
-  
-  
   Serial.println("Ich bin mit dem Internet verbunden!");
 
- // Starten Sie den Webserver
-  
+  // Starten Sie den Webserver
   server.on("/page0", handleRoot0);
   server.on("/page1", handleRoot1);
   server.on("/page2", handleRoot2);
@@ -78,13 +71,12 @@ WiFi.begin(ssid, password);
 
   server.begin();
   Serial.println("HTTP server started");
-
 }
 
 void loop() {
   server.handleClient(); // Bearbeiten Sie eingehende HTTP-Anfragen
   
-  //Waage
+  // Waage
   if (waage1.is_ready()) {
     float messwert0 = ((waage1.read() * -0.0001) + 46.7);
     messwertfinal = (((messwert0 / 0.1) - 1) * 44) + 55;
@@ -110,7 +102,7 @@ void loop() {
   // Abstand berechnen
   distance = duration * 0.034 / 2;
 
-  // LEDs basierend auf dem Abstand und Gewicht steuern
+  // LEDs basierend auf dem Abstand steuern
   uint32_t color;
   if (distance < 15) {
     color = pixels.Color(255, 0, 0); // Rot für kurze Distanz
@@ -120,76 +112,52 @@ void loop() {
     }
   } else if (distance >= 15 && distance < 23) {
     color = pixels.Color(255, 255, 0); // Gelb für mittlere Distanz
-    isRed = false;
     displayPage0 = false;
     displayPage1 = false;
     displayPage2 = true;
     displayPage3 = false;
+    isRed = false;
   } else if (distance > 23 && messwertfinal < 500) {
     color = pixels.Color(0, 255, 0); // Grün für lange Distanz & geringes Gewicht
-    isRed = false;
     displayPage0 = false;
     displayPage1 = true;
     displayPage2 = false;
     displayPage3 = false;
+    isRed = false;
   } else if (distance > 23 && messwertfinal >= 501 && messwertfinal < 1000) {
     color = pixels.Color(0, 255, 0); // Grün für lange Distanz & mittleres Gewicht
-    isRed = false;
     displayPage0 = false;
     displayPage1 = true;
     displayPage2 = false;
     displayPage3 = false;
+    isRed = false;
   } else {
     color = pixels.Color(255, 255, 0); // Gelb für lange Distanz & hohes Gewicht
-    isRed = false;
     displayPage0 = false;
     displayPage1 = false;
     displayPage2 = true;
     displayPage3 = false;
+    isRed = false;
   }
 
   setColor(color);
 
   // Wenn LEDs länger als 20 sek rot leuchten, dann ist der mülleimer voll
-  if (isRed && (millis() - redStartTime > 20000)) {
-    
-    Serial.println("Mülleimer ist voll");
+  if (isRed && (millis() - redStartTime > 5000)) {
     displayPage0 = false;
     displayPage1 = false;
     displayPage2 = false;
     displayPage3 = true;
+    Serial.println("Mülleimer ist voll");
   }
-
-
-//Website 
-
-if (displayPage0) {
-    server.sendHeader("Location", "/page0");
-    server.send(302, "text/plain", "");
-  }
-
-  if (displayPage1) {
-    server.sendHeader("Location", "/page1");
-    server.send(302, "text/plain", "");
-  }
-
-  if (displayPage2) {
-    server.sendHeader("Location", "/page2");
-    server.send(302, "text/plain", "");
-  }
-  
-  if (displayPage3) {
-    server.sendHeader("Location", "/page3");
-    server.send(302, "text/plain", "");
-  }
-
-
 
   delay(1000);
 }
 
+// Updated the root handlers to perform the redirection logic correctly
 void handleRoot0() {
-  String html = "<!DOCTYPE html>"
+  if (displayPage0) {
+    String html = "<!DOCTYPE html>"
                 "<html lang=\"de\">"
                 "<head>"
                 "<meta charset=\"UTF-8\">"
@@ -255,11 +223,15 @@ void handleRoot0() {
                 "</body>"
                 "</html>";
 
-  server.send(200, "text/html", html);
+    server.send(200, "text/html", html);
+  } else {
+    redirectToCurrentPage();
+  }
 }
 
 void handleRoot1() {
-  String html = "<!DOCTYPE html>"
+  if (displayPage1) {
+    String html = "<!DOCTYPE html>"
                 "<html lang=\"de\">"
                 "<head>"
                 "<meta charset=\"UTF-8\">"
@@ -325,11 +297,15 @@ void handleRoot1() {
                 "</body>"
                 "</html>";
 
-  server.send(200, "text/html", html);
+    server.send(200, "text/html", html);
+  } else {
+    redirectToCurrentPage();
+  }
 }
 
 void handleRoot2() {
-  String html = "<!DOCTYPE html>"
+  if (displayPage2) {
+    String html = "<!DOCTYPE html>"
                 "<html lang=\"de\">"
                 "<head>"
                 "<meta charset=\"UTF-8\">"
@@ -395,11 +371,16 @@ void handleRoot2() {
                 "</body>"
                 "</html>";
 
-  server.send(200, "text/html", html);
+
+    server.send(200, "text/html", html);
+  } else {
+    redirectToCurrentPage();
+  }
 }
 
 void handleRoot3() {
-  String html = "<!DOCTYPE html>"
+  if (displayPage3) {
+    String html = "<!DOCTYPE html>"
                 "<html lang=\"de\">"
                 "<head>"
                 "<meta charset=\"UTF-8\">"
@@ -464,13 +445,31 @@ void handleRoot3() {
                 "</script>"
                 "</body>"
                 "</html>";
-
-  server.send(200, "text/html", html);
+                
+    server.send(200, "text/html", html);
+  } else {
+    redirectToCurrentPage();
+  }
 }
 
+// Helper function to redirect to the correct page based on current status
+void redirectToCurrentPage() {
+  if (displayPage1) {
+    server.sendHeader("Location", "/page1", true);
+  } else if (displayPage2) {
+    server.sendHeader("Location", "/page2", true);
+  } else if (displayPage3) {
+    server.sendHeader("Location", "/page3", true);
+  } else {
+    server.sendHeader("Location", "/page0", true);
+  }
+  server.send(303); // 303 See Other response
+}
+
+// Updated the setColor function to use show()
 void setColor(uint32_t color) {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, color);
   }
-  pixels.show(); // Aktualisiert die LEDs mit der neuen Farbe
+  pixels.show();
 }
